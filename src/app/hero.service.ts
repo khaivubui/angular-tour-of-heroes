@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { catchError, map, tap } from 'rxjs/operators';
 
 import { Hero } from './hero';
 import { Observable } from 'rxjs/Observable';
@@ -16,8 +17,12 @@ export class HeroService {
   ) { }
 
   getHeroes(): Observable<Hero[]> {
-    this.log('HeroService: fetched heroes');
-    return this.http.get<Hero[]>(this.heroesUrl);
+    return this.http
+               .get<Hero[]>(this.heroesUrl)
+               .pipe(
+                 tap(heroes => this.log('fetched heroes')),
+                 catchError(this.handleError('getHeroes', []))
+                );
   }
 
   getHero(id: number): Observable<Hero> {
@@ -27,6 +32,14 @@ export class HeroService {
 
   private log(message: string) {
     this.messageService.add(message);
+  }
+
+  private handleError<T> (operation = 'operation', result: T) {
+    return (error: any): Observable<T> => {
+      console.error(error);
+      this.log(`${operation} failed: ${error.message}`);
+      return of(result as T);
+    };
   }
 
 }
