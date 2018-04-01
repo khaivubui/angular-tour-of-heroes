@@ -10,6 +10,7 @@ import { MessageService } from './message.service';
 @Injectable()
 export class HeroService {
   private heroesUrl = 'api/heroes';
+  private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json' })};
 
   constructor(
     private http: HttpClient,
@@ -35,13 +36,20 @@ export class HeroService {
   }
 
   updateHero(hero: Hero): Observable<any> {
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-
     return this.http
-               .put(this.heroesUrl, hero, { headers })
+               .put(this.heroesUrl, hero, this.httpOptions)
                .pipe(
                  tap(_ => this.log(`updated hero with id ${hero.id}`)),
                  catchError(this.handleError<any>('update hero', null))
+               );
+  }
+
+  addHero(hero: Hero): Observable<Hero> {
+    return this.http
+               .post<Hero>(this.heroesUrl, hero, this.httpOptions)
+               .pipe(
+                 tap(({ name, id }: Hero) => this.log(`added hero ${name} with id ${id}`)),
+                 catchError(this.handleError<Hero>('addHero', null))
                );
   }
 
